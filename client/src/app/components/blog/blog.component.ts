@@ -13,11 +13,13 @@ export class BlogComponent implements OnInit {
 	newList = false;
 	loadingLists = false;
 	form;
+	commentForm
 	messageClass;
 	message;
+	newTask = [];
 	lists = [
-     {id: 1, title: 'Chores', tasks: ['Do the dishes', 'clean the livingRoom']},
-     {id: 2, title: 'Work', tasks: ['finish the challenge', 'deploy the app']}
+     {id: 1, title: 'Chores', tasks: [{id: 1, name:'Do the dishes'}, {id:2, name:'clean the livingRoom'}]},
+     {id: 2, title: 'Work', tasks: [{id:1, name: 'finish the challenge'}, {id:2, name: 'deploy the app'}]}
     ];
     next =3;
 
@@ -26,6 +28,7 @@ export class BlogComponent implements OnInit {
   	private blogService: BlogService
   	) { 
   	this.createNewListForm(); // Create new blog form on start up
+  	this.createNewCommentForm();
    }
 
   createNewListForm(){
@@ -37,6 +40,16 @@ export class BlogComponent implements OnInit {
         this.alphaNumericValidation
       ])]
     })
+  }
+
+  createNewCommentForm(){
+  	this.commentForm = this.formBuilder.group({
+  		task: ['', Validators.compose([
+        Validators.required,
+        Validators.minLength(1),
+        Validators.maxLength(200)
+      ])]
+  	})
   }
 
   newListForm(){
@@ -54,6 +67,8 @@ export class BlogComponent implements OnInit {
     this.lists.push(list);
 
     this.next= this.next+1;
+
+    console.log(list);
 
     // Clear form data after two seconds
     setTimeout(() => {
@@ -102,6 +117,49 @@ export class BlogComponent implements OnInit {
   	// });
 
   }
+
+  draftTask(id){
+   this.newTask = [];
+   this.newTask.push(id);
+  }
+
+  postTask(id){
+  	const l = this.lists[id-1].tasks.length;
+  	var taskId;
+  	if(l === 0)
+  		taskId = 1;
+  	else
+    	taskId = (this.lists[id-1].tasks[l-1].id) + 1;
+    const newTask = {
+    	id: taskId,
+    	name: this.commentForm.get('task').value
+    }
+    this.lists[id-1].tasks.push(newTask);
+    const index = this.newTask.indexOf(id); // Check the index of the blog post in the array
+    this.newTask.splice(index, 1);
+    this.commentForm.reset();
+    //if backend existed
+    //blogService.addTask(id, this.commentForm.get('task').value);
+  }
+
+ 
+  cancelSubmission(id) {
+    const index = this.newTask.indexOf(id); // Check the index of the blog post in the array
+    this.newTask.splice(index, 1); // Remove the id from the array to cancel post submission
+    this.commentForm.reset(); // Reset  the form after cancellation
+  }
+
+  deleteTask(listID, taskID){
+  	    setTimeout(() => {
+  	       const index = this.lists[listID-1].tasks.findIndex(x => x.id == taskID);
+  	       console.log(index);
+           this.lists[listID-1].tasks.splice(index,1);
+        }, 1000);
+
+        //if backend exists
+        //this.blogService.deleteTask(listID, taskID);
+  }
+  
 
   goBack() {
     window.location.reload(); // Clear all variable states

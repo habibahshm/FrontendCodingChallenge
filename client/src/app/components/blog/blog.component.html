@@ -48,9 +48,8 @@
     <div class="panel-body">
       <div *ngFor = "let task of list.tasks">
       	<label>
- 				<input type="checkbox" > {{ task }}
+ 				<input type="checkbox" (click) ="deleteTask(list.id, task.id)"> {{ task.name }}
  			</label>
- 			<!-- ng-click ="deleteTodo(todo._id)" -->
       </div>
     </div>
 
@@ -58,13 +57,28 @@
     <!-- Post Comment Box: Start -->
     <ul class="list-group">
       <li class="list-group-item">
-        <button type="button" name="button" class="btn btn-sm btn-danger" (click)="draftTask()">Add Task</button>
+
+        <button type="button" name="button" class="btn btn-sm btn-danger" (click)="draftTask(list.id)" [disabled]="newTask.indexOf(list.id) > -1">Add Task </button>
+
         <br />
-        <!-- <form>
-          <textarea name="comment" rows="10" cols="30" class="form-control"></textarea>
-          <button type="button" name="button" class="btn btn-sm btn-info">Submit Post</button>
-          <button type="button" name="button" class="btn btn-sm btn-danger">Cancel</button>
-        </form> -->
+        <br />
+
+        <div *ngIf="newTask.indexOf(list.id) > -1">
+	        <form [formGroup]="commentForm">
+	          <textarea name="task" rows="2" cols="10" class="form-control" formControlName="task"></textarea>
+	          <!-- Validation -->
+            <div [ngClass]="{'has-success': !commentForm.controls.task.errors && commentForm.controls.task.dirty, 'has-error': commentForm.controls.task.dirty && commentForm.controls.task.errors}">
+              <ul class="help-block">
+                <li *ngIf="commentForm.controls.task.errors?.required && commentForm.controls.task.dirty">This field is required.</li>
+                <li *ngIf="(commentForm.controls.task.errors?.maxlength && commentForm.controls.task.dirty) ||(commentForm.controls.task.errors?.minlength && commentForm.controls.task.dirty)">Comment must be at least 1 character but no more than 200.</li>
+              </ul>
+            </div>
+	          <button [disabled]="!commentForm.valid" type="submit" name="button" class="btn btn-sm btn-info" (click)="postTask(list.id)">Submit Task</button>
+
+	          <button type="button" name="button" class="btn btn-sm btn-danger" (click)="cancelSubmission(list.id)">Cancel</button>
+
+	         </form>
+        </div>
       </li>
     </ul>
     <!-- Post Comment Box: End -->
